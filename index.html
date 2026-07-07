@@ -7,14 +7,14 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Living Mood – Cash Flow</title>
+<title>Living Mood – Payment Statement</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet"/>
 
 <script>
   const CFG = {
-    appsScriptUrl : 'https://script.google.com/macros/s/AKfycbzra3VGe2tFatPqIQ050jp-uhUti-aBCr6n8leh5RRATib58325jCbTkL2VzEeaTlqFkg/exec', // ⚠️ حط هنا الـ Web App URL بتاع Apps Script الخاص بمشروع Cash Flow
+    appsScriptUrl : 'https://script.google.com/macros/s/AKfycbzra3VGe2tFatPqIQ050jp-uhUti-aBCr6n8leh5RRATib58325jCbTkL2VzEeaTlqFkg/exec', // ⚠️ حط هنا الـ Web App URL بتاع Apps Script الخاص بمشروع Payment Statement
     noteLines: [
       'هذا العرض يوضح حالة المدفوعات الخاصة بالمشروع حتى تاريخ آخر تحديث.',
       'أي تعديل في قيمة الإجمالي أو الدفعات يجب أن يُحدَّث فورًا في هذا السجل.'
@@ -188,7 +188,7 @@ table.q-tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:640px;}
 <div id="mail-modal">
   <div class="confirm-card">
     <h3>إرسال كشف الدفعات بالإيميل</h3>
-    <p>اكتب إيميل العميل أو المهندس لإرسال كشف الـ Cash Flow</p>
+    <p>اكتب إيميل العميل أو المهندس لإرسال كشف الـ Payment Statement</p>
     <div class="field" style="margin-bottom:18px;">
       <input type="email" id="mail-to-input" placeholder="example@email.com" style="direction:ltr;text-align:left;"/>
     </div>
@@ -200,13 +200,13 @@ table.q-tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:640px;}
   </div>
 </div>
 
-<div class="topbar">Living Mood — Cash Flow Tracker</div>
+<div class="topbar">Living Mood — Payment Statement Tracker</div>
 
 <div class="shell">
 
   <div class="brand">
     <div class="brand-name">Living <span>Mood</span></div>
-    <div class="brand-tagline">cash flow &amp; payments</div>
+    <div class="brand-tagline">payment statement</div>
     <div class="brand-divider"></div>
   </div>
 
@@ -406,7 +406,7 @@ function buildPdfHtml(forPrint, forEmail=false){
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8"/>
-  <title>LivingMood_CashFlow</title>
+  <title>LivingMood_PaymentStatement</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet"/>
@@ -467,7 +467,7 @@ function buildPdfHtml(forPrint, forEmail=false){
 
   <div class="brand-block">
     <div class="brand-title">Living <span>Mood</span></div>
-    <div class="brand-sub">Cash Flow &amp; Payments</div>
+    <div class="brand-sub">Payment Statement</div>
   </div>
 
   <div class="date-row"><strong>التاريخ:</strong> ${date}</div>
@@ -584,7 +584,7 @@ const UI = {
       const d = await API.fetch('POST',{
         action:'sendEmailCashFlow',
         to,
-        subject:'Cash Flow Statement - Living Mood',
+        subject:'Payment Statement - Living Mood',
         rows: STATE.rows,
         customer: STATE.customer,
         total: num(STATE.customer.total),
@@ -818,7 +818,7 @@ const PDF = {
     const originalBody  = document.body.innerHTML;
     const originalTitle = document.title;
 
-    document.title = 'LivingMood_CashFlow';
+    document.title = 'LivingMood_PaymentStatement';
     document.head.innerHTML = printStyles;
     document.body.innerHTML = printContent;
 
@@ -833,7 +833,7 @@ const PDF = {
     window.print();
 
     setTimeout(() => {
-      if(document.title === 'LivingMood_CashFlow') restore();
+      if(document.title === 'LivingMood_PaymentStatement') restore();
     }, 3000);
   }
 };
