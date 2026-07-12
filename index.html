@@ -251,17 +251,17 @@ table.q-tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:640px;}
         <div class="info-box">
           <div class="info-row">
             <span class="info-lbl">موجه إلى:</span>
-            <input type="text" id="b-engineer" class="info-val" style="border:1px solid var(--border);border-radius:5px;padding:4px 8px;background:#fff;min-width:160px;" oninput="STATE.customer.engineer=this.value; STATE.customer.name=[STATE.customer.engineer,STATE.customer.address].filter(Boolean).join(' - ')"/>
+            <input type="text" id="b-engineer" class="info-val" style="border:1px solid var(--border);border-radius:5px;padding:4px 8px;background:#fff;min-width:160px;" oninput="STATE.customer.engineer=this.value; STATE.customer.name=[STATE.customer.engineer,STATE.customer.address].filter(Boolean).join(' - '); saveSession()"/>
           </div>
           <div class="info-row">
             <span class="info-lbl">العنوان / المشروع:</span>
-            <input type="text" id="b-address" class="info-val" style="border:1px solid var(--border);border-radius:5px;padding:4px 8px;background:#fff;min-width:160px;" oninput="STATE.customer.address=this.value; STATE.customer.name=[STATE.customer.engineer,STATE.customer.address].filter(Boolean).join(' - ')"/>
+            <input type="text" id="b-address" class="info-val" style="border:1px solid var(--border);border-radius:5px;padding:4px 8px;background:#fff;min-width:160px;" oninput="STATE.customer.address=this.value; STATE.customer.name=[STATE.customer.engineer,STATE.customer.address].filter(Boolean).join(' - '); saveSession()"/>
           </div>
         </div>
         <div class="info-box">
           <div class="info-row">
             <span class="info-lbl">الإجمالي الكلي:</span>
-            <input type="text" inputmode="numeric" id="b-total" style="width:140px;font-weight:700;" onkeypress="return /[0-9.]/.test(event.key)" onchange="P.refreshTotals()"/>
+            <input type="text" inputmode="numeric" id="b-total" style="width:140px;font-weight:700;" onkeypress="return /[0-9.]/.test(event.key)" onchange="P.refreshTotals(); saveSession()"/>
           </div>
         </div>
       </div>
@@ -372,6 +372,48 @@ function closeConfirm(){ $('confirm-modal').classList.remove('open'); _confirmCb
 function closeMailModal(){ $('mail-modal').classList.remove('open'); }
 
 let STATE = { customer: null, rows: [] };
+
+/* ─── حفظ واسترجاع الحالة عشان الريلود ميرجعش للرئيسية ─── */
+function saveSession(){
+  try{
+    const activePage = document.querySelector('.page.active');
+    sessionStorage.setItem('lm_pay_session', JSON.stringify({
+      page: activePage ? activePage.id : 'pg-home',
+      customer: STATE.customer,
+      rows: STATE.rows,
+      total: $('b-total') ? $('b-total').value : 0,
+      completed: $('chk-complete') ? $('chk-complete').checked : false
+    }));
+  }catch(e){}
+}
+
+function restoreSession(){
+  try{
+    const raw = sessionStorage.getItem('lm_pay_session');
+    if(!raw) return false;
+    const s = JSON.parse(raw);
+    if(!s || !s.customer || (s.page !== 'pg-editor' && s.page !== 'pg-preview')) return false;
+
+    STATE.customer = s.customer;
+    STATE.rows = (s.rows && s.rows.length) ? s.rows.map(r=>({...r,_id:Math.random()})) : [P.newRow(0)];
+
+    $('b-engineer').value = STATE.customer.engineer || '';
+    $('b-address').value  = STATE.customer.address  || '';
+    $('b-total').value    = s.total || 0;
+    $('chk-complete').checked = !!s.completed;
+    $('complete-msg').classList.toggle('show', !!s.completed);
+    P.render();
+
+    if(s.page === 'pg-preview'){
+      STATE.customer.total = num($('b-total').value);
+      $('preview-inner').innerHTML = buildPdfHtml(false,false);
+      UI.show('pg-preview');
+    } else {
+      UI.show('pg-editor');
+    }
+    return true;
+  }catch(e){ return false; }
+}
 
 /* ─── PDF HTML builder ─── */
 function buildPdfHtml(forPrint, forEmail=false){
@@ -533,8 +575,8 @@ ${(forPrint || forEmail) ? '' : `<div class="dl-bar">
 
 /* ─── UI navigation ─── */
 const UI = {
-  show(id){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); $(id).classList.add('active'); },
-  goHome(){   this.show('pg-home'); API.listCustomers(); },
+  show(id){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); $(id).classList.add('active'); saveSession(); },
+  goHome(){ try{ sessionStorage.removeItem('lm_pay_session'); }catch(e){} this.show('pg-home'); API.listCustomers(); },
   goEditor(){ this.show('pg-editor'); },
 
   openMailPrompt(){
@@ -625,6 +667,7 @@ $('b-engineer').value = eng || '';
     $('complete-msg').classList.remove('show');
     P.render();
     this.goEditor();
+    saveSession();
   },
 
   openCustomer(c){
@@ -641,12 +684,14 @@ $('b-engineer').value = c.engineer || '';
         $('complete-msg').classList.toggle('show', !!d.completed);
         P.render();
         this.goEditor();
+        saveSession();
       })
+      .catch(()=>{ STATE.rows=[P.newRow(0)]; P.render(); this.goEditor(); saveSession(); })
       .catch(()=>{ STATE.rows=[P.newRow(0)]; P.render(); this.goEditor(); })
       .finally(loaded);
   },
 
-  toggleComplete(cb){
+toggleComplete(cb){
     const total = num($('b-total').value);
     const received = P.received();
     const remaining = total - received;
@@ -657,16 +702,17 @@ $('b-engineer').value = c.engineer || '';
     }
     $('complete-msg').classList.toggle('show', cb.checked);
     if(STATE.customer) STATE.customer.completed = cb.checked;
+    saveSession();
   }
 };
 
 /* ─── rows / table ─── */
 const P = {
   newRow(idx){ return {_id:Math.random(), name: ordinalName(idx), amount:0, date:''}; },
-  addRow(){ STATE.rows.push(this.newRow(STATE.rows.length)); this.render(); },
-  del(id)  { STATE.rows=STATE.rows.filter(r=>r._id!==id); this.render(); },
+addRow(){ STATE.rows.push(this.newRow(STATE.rows.length)); this.render(); saveSession(); },
+  del(id)  { STATE.rows=STATE.rows.filter(r=>r._id!==id); this.render(); saveSession(); },
   received(){ return STATE.rows.reduce((s,r)=>s+num(r.amount),0); },
-  set(id,f,v){ const r=STATE.rows.find(r=>r._id===id); if(r) r[f]=v; },
+set(id,f,v){ const r=STATE.rows.find(r=>r._id===id); if(r) r[f]=v; saveSession(); },
   setAmount(id,v){
     const r=STATE.rows.find(r=>r._id===id);
     if(!r) return;
@@ -678,6 +724,7 @@ const P = {
       r.date = '';
     }
     this.render();
+    saveSession();
   },
 
   refreshTotals(){
@@ -838,7 +885,7 @@ const PDF = {
   }
 };
 /* ─── init ─── */
-window.onload = () => API.listCustomers();
+window.onload = () => { API.listCustomers(); restoreSession(); };
 </script>
 </body>
 </html>
