@@ -251,11 +251,11 @@ table.q-tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:640px;}
         <div class="info-box">
           <div class="info-row">
             <span class="info-lbl">موجه إلى:</span>
-            <span class="info-val" id="b-engineer"></span>
+            <input type="text" id="b-engineer" class="info-val" style="border:1px solid var(--border);border-radius:5px;padding:4px 8px;background:#fff;min-width:160px;" oninput="STATE.customer.engineer=this.value; STATE.customer.name=[STATE.customer.engineer,STATE.customer.address].filter(Boolean).join(' - ')"/>
           </div>
           <div class="info-row">
             <span class="info-lbl">العنوان / المشروع:</span>
-            <span class="info-val" id="b-address"></span>
+            <input type="text" id="b-address" class="info-val" style="border:1px solid var(--border);border-radius:5px;padding:4px 8px;background:#fff;min-width:160px;" oninput="STATE.customer.address=this.value; STATE.customer.name=[STATE.customer.engineer,STATE.customer.address].filter(Boolean).join(' - ')"/>
           </div>
         </div>
         <div class="info-box">
@@ -618,8 +618,8 @@ const UI = {
     const name = [eng,adr].filter(Boolean).join(' - ');
     STATE.customer = { name, engineer:eng, address:adr, total, completed:false };
     STATE.rows = [P.newRow(0)];
-    $('b-engineer').textContent = eng || '—';
-    $('b-address').textContent  = adr || '—';
+$('b-engineer').value = eng || '';
+    $('b-address').value  = adr || '';
     $('b-total').value = total;
     $('chk-complete').checked = false;
     $('complete-msg').classList.remove('show');
@@ -629,8 +629,8 @@ const UI = {
 
   openCustomer(c){
     STATE.customer = c;
-    $('b-engineer').textContent = c.engineer || '—';
-    $('b-address').textContent  = c.address  || '—';
+$('b-engineer').value = c.engineer || '';
+    $('b-address').value  = c.address  || '';
     $('b-total').value = c.total || 0;
     loading('جاري تحميل السجل...');
     API.fetch('GET',{action:'getCashFlow',name:c.name})
