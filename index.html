@@ -804,6 +804,7 @@ const API = {
       d.customers.forEach(c=>{
         const div=document.createElement('div'); div.className='c-item';
         const pct = c.total>0 ? Math.min(100,(num(c.received)/num(c.total))*100) : 0;
+        const remaining = num(c.total) - num(c.received);
         div.innerHTML=`
           <div class="ci-info">
             <div class="ci-name">${h(c.engineer||c.name)} ${c.completed?'<span class="ci-done">مكتمل</span>':''}</div>
@@ -812,6 +813,7 @@ const API = {
               <span>آخر دفعة: <b>${h(c.lastPayment||'—')}</b></span>
               <span>الإجمالي: <b>${fmt(c.total)}</b></span>
               <span>المستلم: <b>${fmt(c.received)}</b></span>
+              <span>الباقي: <b style="color:${Math.abs(remaining)<=0.01?'var(--green)':'var(--red)'};">${fmt(remaining)}</b></span>
               <span>النسبة: <b>${pct.toFixed(0)}%</b></span>
             </div>
           </div>
