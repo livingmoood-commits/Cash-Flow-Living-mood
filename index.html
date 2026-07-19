@@ -343,6 +343,8 @@ const $  = id => document.getElementById(id);
 const h  = s  => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const fmt= n  => Number(n||0).toLocaleString('en-US');
 const num= v  => parseFloat((v+'').replace(/,/g,''))||0;
+const toISO = d => { if(!d) return ''; const p=d.split('/'); return p.length===3 ? `${p[2]}-${p[1]}-${p[0]}` : ''; };
+const toEnGB = iso => { if(!iso) return ''; const p=iso.split('-'); return p.length===3 ? `${p[2]}/${p[1]}/${p[0]}` : ''; };
 
 const ORDINALS = ['الأولى','الثانية','الثالثة','الرابعة','الخامسة','السادسة','السابعة','الثامنة','التاسعة','العاشرة',
   'الحادية عشر','الثانية عشر','الثالثة عشر','الرابعة عشر','الخامسة عشر','السادسة عشر','السابعة عشر','الثامنة عشر','التاسعة عشر','العشرون'];
@@ -727,6 +729,14 @@ set(id,f,v){ const r=STATE.rows.find(r=>r._id===id); if(r) r[f]=v; saveSession()
     saveSession();
   },
 
+  setDate(id, isoVal){
+    const r=STATE.rows.find(r=>r._id===id);
+    if(!r) return;
+    r.date = toEnGB(isoVal);
+    this.render();
+    saveSession();
+  },
+
   refreshTotals(){
     const total = num($('b-total').value);
     const received = this.received();
@@ -755,7 +765,7 @@ set(id,f,v){ const r=STATE.rows.find(r=>r._id===id); if(r) r[f]=v; saveSession()
         <td><input type="text" value="${h(r.name)}" onchange="P.set(${r._id},'name',this.value)" placeholder="${ordinalName(i)}"/></td>
         <td><input type="text" inputmode="numeric" value="${r.amount||''}" onchange="P.setAmount(${r._id},this.value)" onkeypress="return /[0-9.]/.test(event.key)" style="direction:ltr;text-align:left;"/></td>
         <td class="pct-cell">${pct!==''?pct.toFixed(0)+'%':'—'}</td>
-        <td class="date-cell">${r.date||'—'}</td>
+        <td class="date-cell"><input type="date" value="${toISO(r.date)}" onchange="P.setDate(${r._id},this.value)" style="direction:ltr;width:132px;"/></td>
         <td><button class="btn btn-danger btn-sm" onclick="P.del(${r._id})">✕</button></td>`;
       tb.appendChild(tr);
     });
