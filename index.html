@@ -875,7 +875,10 @@ const PDF = {
     const originalBody  = document.body.innerHTML;
     const originalTitle = document.title;
 
-    document.title = 'LivingMood_PaymentStatement';
+    const projectName = (STATE.customer && STATE.customer.address) ? STATE.customer.address.trim() : '';
+    const pdfTitle = 'Payment Statement' + (projectName ? ' - ' + projectName : '');
+
+    document.title = pdfTitle;
     document.head.innerHTML = printStyles;
     document.body.innerHTML = printContent;
 
@@ -890,7 +893,7 @@ const PDF = {
     window.print();
 
     setTimeout(() => {
-      if(document.title === 'LivingMood_PaymentStatement') restore();
+      if(document.title === pdfTitle) restore();
     }, 3000);
   }
 };
